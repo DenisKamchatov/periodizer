@@ -1,15 +1,33 @@
 import { ref, onUnmounted } from 'vue';
+// TODO: Вернуть все комментарии и описать что делает функцию
 
+// Убрать callback и написать emitter (назвать onEmit)
+
+// FinalTime в мс
 type Seconds = number;
 
+// Конфигурация
 interface PeriodizerOptions {
-  default: Seconds | false;
-  intervals: Array<Interval>;
+  /**
+   * По-умолчанию для оставшегося времени свыше максимального описанного в intervals.
+   * Если *false* то не вызываем функцию вне описанных интервалов.
+   */
+  default: Seconds | false,
+  /**
+   * Массив интервалов
+   */
+  intervals: Array<Interval>
 }
 
 interface Interval {
-  timeleft: Seconds; 
-  callEvery: Seconds
+  /**
+     * Оставшееся время (в секундах)
+     */
+  timeleft: Seconds,
+  /**
+   * Периодичность вызова (в секундах)
+   */
+  callEvery: Seconds,
 }
 
 export function usePeriodizer(
@@ -21,15 +39,19 @@ export function usePeriodizer(
 
   function startTimer() {
     timer.value = setInterval(() => {
+      // Настоящее время и время окончания таймера в UTC
       const currentTimestampUTC = new Date().toISOString();
       const currentDateTime = new Date(currentTimestampUTC);
       const targetDateTime = new Date(finalTime);
+
+      // Находится разница в миллисекундах между временем окончания таймера и настоящим временем
       const timeDifferenceInMilliseconds = targetDateTime.getTime() - currentDateTime.getTime();
       const timeDifferenceInSeconds = Math.floor(timeDifferenceInMilliseconds / 1000);
 
       if (timeDifferenceInSeconds > 0) {
         const currentInterval = findInterval(timeDifferenceInSeconds, config.intervals)
 
+        // Если оставшееся время больше всех интервалов и кратно config.default 
         if (
             !currentInterval && 
             config.default && 
@@ -37,12 +59,11 @@ export function usePeriodizer(
         ) {
           callback(finalTime)
           
+        // Если оставшееся время входит в интервалы и кратно callEvery подходящего интервала 
         } else if (
             currentInterval && 
             timeDifferenceInSeconds % currentInterval.callEvery === 0
         ) {
-          // const extendedTime = new Date(new Date(finalTime).setTime(targetDateTime.getTime()  + currentInterval.callEvery))
-          // callback(extendedTime.toISOString())
           callback(finalTime)
         }
 
@@ -50,7 +71,6 @@ export function usePeriodizer(
         stopTimer()
       }
       console.log('diff: ', timeDifferenceInSeconds)
-      // console.log(new Date(finalTime).getTime() + )
       
     }, 1000)
   };
@@ -67,12 +87,14 @@ export function usePeriodizer(
     intervals: Array<{ timeleft: Seconds; callEvery: Seconds }>
   ) {
     let currentInterval: Interval | undefined;
+    // Сортировка массива по убыванию timeleft
+    intervals.sort((intervalFirst, intervalSecond) => intervalSecond.timeleft - intervalFirst.timeleft)
+    // Нахождение интервала, который подходит под время
     intervals.map((interval: Interval) => {
       time <= interval.timeleft && (
         currentInterval = interval
       )
     })
-    // return intervals.find((interval) => time <= interval.timeleft);
     return currentInterval
   };
 
@@ -83,9 +105,5 @@ export function usePeriodizer(
 
   startTimer();
 
-  onUnmounted(() => {
-    stopTimer();
-  });
-
-  // return { restartTimer };
+  return { restartTimer };
 }
