@@ -8,9 +8,9 @@
   import { ref } from 'vue';
   import { usePeriodizer } from './usePeriodizer';
 
-  const finalTime = ref<string>(new Date(2023,11,25,18,0).toISOString());
+  const finalTime = ref<number>(new Date(2023,11,26,2,0).getTime());
 
-  const updateCallback = (time: string) => {
+  const updateCallback = (time: number) => {
     console.log('updateCallback!', time)
   };
 

@@ -1,9 +1,5 @@
-import { ref, onUnmounted } from 'vue';
-// TODO: Вернуть все комментарии и описать что делает функцию
-
+import { ref } from 'vue';
 // Убрать callback и написать emitter (назвать onEmit)
-
-// FinalTime в мс
 type Seconds = number;
 
 // Конфигурация
@@ -31,8 +27,8 @@ interface Interval {
 }
 
 export function usePeriodizer(
-  finalTime: string,
-  callback: (time: string) => void,
+  finalTime: number,
+  callback: (time: number) => void,
   config: PeriodizerOptions
 ) {
   const timer = ref<number | null>(null);
